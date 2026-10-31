@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TOAC – Air Consumption Tracker</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--tx:#0f172a;--mu:#64748b;--bd:#e2e8f0;--ac:#1d4ed8;--acx:#fff;--acs:#eaf0ff;--ok:#047857;--oks:#e6f6ef;--bad:#b91c1c;--bads:#fdecec;--wn:#fff8e6;--wnt:#7a4a00;--wnb:#f3dfae;--hdr:#0f172a;--sh:0 1px 2px rgba(15,23,42,.06),0 1px 3px rgba(15,23,42,.05);--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a101c;--card:#121a2b;--tx:#e8edf6;--mu:#8d9ab1;--bd:#22304a;--ac:#5b8cff;--acx:#06122e;--acs:#14223f;--ok:#34d399;--oks:#0f2a22;--bad:#f87171;--bads:#2e1518;--wn:#2a2110;--wnt:#f2c879;--wnb:#4a3a18;--hdr:#060b14;--sh:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a101c;--card:#121a2b;--tx:#e8edf6;--mu:#8d9ab1;--bd:#22304a;--ac:#5b8cff;--acx:#06122e;--acs:#14223f;--ok:#34d399;--oks:#0f2a22;--bad:#f87171;--bads:#2e1518;--wn:#2a2110;--wnt:#f2c879;--wnb:#4a3a18;--hdr:#060b14;--sh:none;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--tx);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+#app{max-width:none;padding:0}
+.hdr{background:var(--hdr);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:env(safe-area-inset-top,0px);z-index:6}
+.hdr .mk{width:32px;height:32px;border-radius:8px;background:var(--ac);color:var(--acx);display:grid;place-items:center;font:800 13px/1 var(--mono);letter-spacing:.02em}
+.hdr b{display:block;font-size:16px;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.hdr small{display:block;font-size:12px;color:#94a3b8;font-weight:500;line-height:1.2;margin-top:2px}
+.pg{max-width:780px;margin:0 auto;padding:18px 16px 104px}
+h1{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:14px 0 14px;color:var(--tx)}
+h2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:0 0 12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:var(--sh)}
+.card.hl{background:var(--wn);border-color:var(--wnb)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}
+.mu{color:var(--mu);font-size:13px}
+label{display:block;margin:12px 0 6px;font-size:13px;font-weight:600;color:var(--tx)}
+input,textarea,select{width:100%;font:inherit;font-size:16px;padding:10px 12px;min-height:44px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 22%,transparent)}
+input.psi{width:120px;font:600 20px var(--mono);text-align:center;font-variant-numeric:tabular-nums}
+button{font:inherit;font-size:14px;font-weight:600;min-height:44px;padding:9px 16px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;transition:background .15s,border-color .15s,transform .05s}
+button:hover{border-color:var(--mu)}button:active{transform:translateY(1px)}
+button:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 30%,transparent)}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button.p:hover{filter:brightness(1.08);border-color:var(--ac)}
+button.s{min-height:34px;padding:5px 12px;font-size:13px;font-weight:600}
+button.danger-solid{background:var(--bad);border-color:var(--bad);color:#fff}
+button.danger-ghost{width:100%;color:var(--bad);background:transparent;border-color:var(--bd)}
+button.danger-ghost:hover{background:var(--bads);border-color:var(--bad)}
+.tabs{position:fixed;left:0;right:0;bottom:0;margin:0;display:flex;gap:0;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.tabs button{flex:1;border:0;border-top:3px solid transparent;border-radius:0;min-height:56px;color:var(--mu);background:transparent;font-size:13px;letter-spacing:.02em}
+.tabs button:hover{background:var(--acs)}
+.tabs .on{color:var(--ac);border-top-color:var(--ac);background:transparent}
+.clock{font:700 56px/1 var(--mono);text-align:center;padding:6px 0;font-variant-numeric:tabular-nums;letter-spacing:-.02em;color:var(--tx)}
+.clock.mu{color:var(--mu);font-size:56px}
+.clockcard{position:sticky;top:calc(env(safe-area-inset-top,0px) + 63px);z-index:4;padding:12px 16px}
+.clockcard .clock{font-size:44px;padding:2px 0 8px}
+.t{font:700 22px var(--mono);font-variant-numeric:tabular-nums;color:var(--ac)}
+.tag{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:99px;border:1px solid var(--bd);color:var(--mu);background:var(--bg)}
+.tag.run{color:var(--ok);border-color:transparent;background:var(--oks)}
+.sc{overflow-x:auto;border:1px solid var(--bd);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 12px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+th{background:var(--bg);color:var(--mu);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td,table tr:hover td{background:color-mix(in srgb,var(--ac) 4%,transparent)}
+td:first-child{font-weight:600}
+.ev{display:block;width:100%;text-align:left;margin-bottom:10px;padding:14px 16px;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:var(--sh);font-weight:500}
+.ev:hover{border-color:var(--ac)}
+.ev b{font-size:15px;font-weight:700}
+.ev .mu{margin-top:4px}
+.big{width:100%;min-height:76px;font-size:18px;font-weight:700;display:block;text-align:center;margin-top:8px;border-radius:12px}
+.big small{display:block;font-size:12px;font-weight:500;opacity:.85;margin-top:3px}
+.step{background:var(--wn);border:1px solid var(--wnb);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:14px;color:var(--wnt)}
+.now{background:var(--acs);border:1px solid color-mix(in srgb,var(--ac) 25%,transparent);border-radius:10px;padding:12px 14px;margin:10px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.now .nm{font-size:18px;font-weight:700;line-height:1.3}
+.now .mu{font-size:11px;letter-spacing:.08em;font-weight:700;text-transform:uppercase}
+
+.stbar{margin-top:10px}.stsel{width:auto;flex:1;min-width:0;min-height:36px;padding:4px 10px;font-size:14px}
+.s2{flex:1;min-height:44px;font-size:13px}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto;background:var(--bad);color:#fff;padding:12px 14px;border-radius:8px;text-align:center;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9}
+@media(max-width:480px){.clock{font-size:48px}.hdr{padding:12px 14px}.pg{padding:14px 12px 104px}}
+</style>
+</head>
+<body>
+<div id="app">Loading…</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=ms=>{const s=Math.floor(Math.max(0,ms)/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const sfmt=ms=>(ms<0?'−':'+')+fmt(Math.abs(ms));
+const num=v=>{v=parseFloat(v);return isNaN(v)?null:v};
+const avg=a=>{a=a.filter(x=>x!=null);return a.length?a.reduce((s,x)=>s+x,0)/a.length:null};
+const S={rostAt:{},endFreeze:null,entry:null,endAsk:false,rost:{},showNew:false,confirmDel:false,presets:[],presetSel:'',events:[],eid:null,people:[],view:'home',drafts:{},mine:false,me:'',cmp:{a:null,b:null,aid:'',bid:''}};
+try{S.me=localStorage.getItem('me')||''}catch(e){}
+let db,unsubP,pending=false;
+const q={};
+function save(path,data){q[path]=(q[path]||Promise.resolve()).then(()=>db.doc(path).set(data)).catch(e=>toast('Save failed ('+(e&&e.code||'error')+'). You may need edit access.'))}
+function toast(m){const t=document.createElement('div');t.className='toast';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),3500)}
+const ev=()=>S.events.find(e=>e.id===S.eid);
+const clean=o=>{const c=JSON.parse(JSON.stringify(o));delete c.id;return c};
+function saveEv(e,patch){save('events/'+e.id,Object.assign(clean(e),patch))}
+function upd(p,fn){const c=clean(p);fn(c);save('events/'+S.eid+'/people/'+p.id,c)}
+const dv=k=>esc(S.drafts[k]??'');
+
+function pstats(p){const m=p.marks||[];const st=m.map((x,i)=>{const e=m[i+1]||(p.endAt!=null?{at:p.endAt,psi:p.endPsi}:null);return e?{dur:e.at-x.at,used:(x.psi!=null&&e.psi!=null)?x.psi-e.psi:null}:null});
+return{st,task:p.endAt!=null&&m.length?p.endAt-m[0].at:null,used:(p.startPsi!=null&&p.endPsi!=null)?p.startPsi-p.endPsi:null}}
+
+const PRESETS={
+'Standard task-oriented course':['Stair climb with hose pack','Hose drag','Forcible entry','Search and victim drag','Ladder carry and raise','Equipment carry'],
+'Rapid intervention (RIT) drill':['Size-up and tool staging','Hose line search','Locate and package firefighter','Drag to exit','Air management check'],
+'Ladder and roof operations':['Ladder carry','Ladder raise','Ladder climb','Roof ventilation cut','Descend and tool return'],
+'Search and rescue':['Hose advance','Primary search','Victim find','Victim removal','Secondary search']
+};
+const evTime=e=>(e.prevMs||0)+(e.endedAt-e.startedAt);
+const defName=()=>new Date().toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})+' TOAC';
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,60)||'event';
+const allP=()=>{const o=Object.assign({},PRESETS);S.presets.forEach(p=>{o[p.name]=p.stations});return o};
+const A={
+dr(k,v){S.drafts[k]=v},
+toggleNew(){S.showNew=!S.showNew;render()},
+flag(pid,key){const p=S.people.find(x=>x.id===pid);const at=Date.now()-ev().startedAt;upd(p,c=>{c[key]=c[key]!=null?null:at})},
+askDel(){S.confirmDel=true;render()},
+cancelDel(){S.confirmDel=false;render()},
+async delEvent(){const id=S.eid;try{const s=await db.collection('events/'+id+'/people').get();await Promise.all(s.docs.map(d=>db.doc('events/'+id+'/people/'+d.id).delete()));await db.doc('events/'+id).delete();delete S.rost[id];S.confirmDel=false;S.view='home';closeEv();render()}catch(e){toast('Could not delete event')}},
+preset(v){S.presetSel=v;const st=allP()[v];if(!st)return render();S.drafts.evSt=st.join('\n');render()},
+savePreset(){const name=(S.drafts.evName||'').trim();if(!name)return toast('Type an event name first');
+const st=(S.drafts.evSt??'Station 1\nStation 2\nStation 3\nStation 4\nStation 5').split('\n').map(s=>s.trim()).filter(Boolean);if(!st.length)return toast('Add at least one station');
+db.doc('presets/'+slug(name)).set({name,stations:st,createdAt:Date.now()}).then(()=>{S.presetSel=name;render();toast('Saved to common events')}).catch(e=>toast('Could not save ('+(e&&e.code)+')'))},
+delPreset(){const p=S.presets.find(x=>x.name===S.presetSel);if(!p)return;db.doc('presets/'+p.id).delete().then(()=>{S.presetSel='';render()}).catch(e=>toast('Could not remove'))},
+tab(v){S.view=v;if(v!=='event')closeEv();render()},
+async newEvent(){const name=(S.drafts.evName??defName()).trim();if(!name)return toast('Enter an event name');
+const st=(S.drafts.evSt??'Station 1\nStation 2\nStation 3\nStation 4\nStation 5').split('\n').map(s=>s.trim()).filter(Boolean);
+try{const r=await db.collection('events').add({name,createdAt:Date.now(),stations:st,status:'setup',startedAt:null,endedAt:null});delete S.drafts.evName;A.open(r.id)}catch(e){toast('Could not create event ('+(e&&e.code)+')')}},
+open(id){closeEv();S.confirmDel=false;S.endAsk=false;S.entry=null;S.eid=id;S.view='event';S.people=[];
+unsubP=db.collection('events/'+id+'/people').orderBy('createdAt').onSnapshot(s=>{S.people=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>toast('Live sync error'));render()},
+setMe(v){S.me=v;try{localStorage.setItem('me',v)}catch(e){}},
+mine(v){S.mine=v;render()},
+addPerson(){const n=(S.drafts.pName||'').trim();if(!n)return toast('Enter a name');
+const e0=ev(),si=Math.max(0,Math.min((e0?e0.stations.length:1)-1,parseInt(S.drafts.pStart)||0));db.collection('events/'+S.eid+'/people').add({name:n,startIdx:si,observer:S.me||'',startPsi:null,marks:[],endPsi:null,endAt:null,createdAt:Date.now()}).catch(e=>toast('Could not add person'));S.drafts.pName='';S.drafts.pStart='0'},
+setStart(pid,v){const p=S.people.find(x=>x.id===pid);if(!p||(p.marks||[]).length)return;upd(p,c=>{c.startIdx=parseInt(v)||0})},
+claim(pid){const p=S.people.find(x=>x.id===pid);upd(p,c=>{c.observer=S.me||''})},
+startPsi(pid){const v=num(S.drafts['sp'+pid]);if(v==null)return toast('Enter air level');const p=S.people.find(x=>x.id===pid);upd(p,c=>{c.startPsi=v});delete S.drafts['sp'+pid]},
+startEvent(){const e=ev();saveEv(e,{status:'running',startedAt:Date.now()})},
+endEvent(){S.endAsk=true;S.endFreeze=Date.now();render()},
+resetClock(){const e=ev();saveEv(e,{status:'setup',prevMs:(e.prevMs||0)+(e.endedAt-e.startedAt),startedAt:null,endedAt:null})},
+endCancel(){S.endAsk=false;S.endFreeze=null;render()},
+async endConfirm(){const e=ev();const act=S.people.filter(p=>(p.marks||[]).length&&p.endAt==null);
+for(const p of act){if(num(S.drafts['e'+p.id])==null)return toast('Enter the air level for '+p.name)}
+const T=S.endFreeze||Date.now();const at=T-e.startedAt;
+try{await Promise.all(act.map(p=>{const c=clean(p);c.endPsi=num(S.drafts['e'+p.id]);c.endAt=at;return db.doc('events/'+e.id+'/people/'+p.id).set(c)}));
+await db.doc('events/'+e.id).set(Object.assign(clean(e),{status:'done',endedAt:T}))}catch(er){return toast('Could not end event')}
+act.forEach(p=>{delete S.drafts['e'+p.id]});S.endAsk=false;S.endFreeze=null;render()},
+ask(pid,kind){S.entry={pid,kind};S.drafts['p'+pid]='';S.focusEntry=true;render()},
+cancel(){S.entry=null;render()},
+mark(pid){const p=S.people.find(x=>x.id===pid);const v=num(p.marks.length===0?p.startPsi:S.drafts['p'+pid]);if(v==null)return toast('Enter the air level first');S.entry=null;const at=Date.now()-ev().startedAt;upd(p,c=>{c.marks.push({psi:v,at})});delete S.drafts['p'+pid]},
+finish(pid){const v=num(S.drafts['p'+pid]);if(v==null)return toast('Enter ending air level');S.entry=null;const p=S.people.find(x=>x.id===pid);const at=Date.now()-ev().startedAt;upd(p,c=>{c.endPsi=v;c.endAt=at});delete S.drafts['p'+pid]},
+undo(pid){const p=S.people.find(x=>x.id===pid);upd(p,c=>{if(c.endAt!=null){c.endAt=null;c.endPsi=null}else c.marks.pop()})},
+async pick(w,id){S.cmp[w+'id']=id;S.cmp[w]=null;render();if(!id)return;
+try{const s=await db.collection('events/'+id+'/people').get();S.cmp[w]={ev:S.events.find(e=>e.id===id),people:s.docs.map(d=>({id:d.id,...d.data()}))};render()}catch(e){toast('Could not load event')}}
+};
+function loadRost(){S.events.filter(e=>e.status==='done'&&S.rostAt[e.id]!==e.endedAt).forEach(e=>{S.rostAt[e.id]=e.endedAt;db.collection('events/'+e.id+'/people').get().then(s=>{S.rost[e.id]=s.docs.map(d=>({id:d.id,...d.data()}));render()}).catch(()=>{delete S.rostAt[e.id]})})}
+function closeEv(){if(unsubP){unsubP();unsubP=null}S.eid=null}
+
+function newForm(){
+return `<div class="card"><h2>New event</h2><label>Event name / date / crew</label><input value="${esc(S.drafts.evName??defName())}" oninput="A.dr('evName',this.value)" placeholder="e.g. Oct 25 TOACE – B Shift">
+<label>Common events (fills in stations, still editable)</label><select onchange="A.preset(this.value)"><option value="">Select a common event…</option>${Object.keys(allP()).map(k=>`<option ${k===S.presetSel?'selected':''}>${esc(k)}</option>`).join('')}</select>
+<label>Stations (one per line, in order)</label><textarea rows="5" oninput="A.dr('evSt',this.value)">${S.drafts.evSt??'Station 1\nStation 2\nStation 3\nStation 4\nStation 5'}</textarea>
+<div class="row" style="margin-top:12px"><button class="p" style="flex:1" onclick="A.newEvent()">Create event</button><button onclick="A.savePreset()">Save as common event</button>${S.presets.some(p=>p.name===S.presetSel)?'<button onclick="A.delPreset()">Remove</button>':''}</div></div>
+`;}
+function savedList(){return `<h2>Saved events</h2>`+(S.events.length?S.events.map(e=>`<button class="ev" onclick="A.open('${e.id}')"><div class="row sp"><b>${esc(e.name)}</b><span class="tag ${e.status==='running'?'run':''}">${e.status}</span></div><div class="mu">${new Date(e.createdAt).toLocaleString()} · ${e.stations.length} stations${e.endedAt?' · total '+fmt(evTime(e)):''}</div></button>`).join(''):'<div class="mu">No events yet.</div>')}
+
+function homeView(){return rosterAll()+`<div class="row" style="margin:14px 0"><button class="p" style="flex:1" onclick="A.toggleNew()">${S.showNew?'Close':'+ New event'}</button></div>`+(S.showNew?newForm():'')+savedList()}
+function rosterAll(){let rows='';S.events.filter(e=>S.rost[e.id]).forEach(e=>{(S.rost[e.id]||[]).filter(p=>p.endAt!=null).forEach(p=>{const s=pstats(p);rows+=`<tr><td>${esc(p.name)}</td><td>${esc(e.name)}</td><td>${new Date(e.createdAt).toLocaleDateString()}</td><td>${p.startPsi??'–'}</td><td>${p.endPsi??'–'}</td><td>${s.used??'–'}</td><td>${s.task!=null?fmt(s.task):'–'}</td><td>${p.vibAt!=null?fmt(p.vibAt):'–'}</td><td>${p.maskAt!=null?fmt(p.maskAt):'–'}</td></tr>`})});
+return `<div class="card"><h2>Completed roster</h2>`+(rows?`<div class="sc"><table><tr><th>Name</th><th>Event</th><th>Date</th><th>Start PSI</th><th>End PSI</th><th>Used</th><th>Total time</th><th>Vibralert</th><th>Mask</th></tr>${rows}</table></div>`:'<div class="mu">Completed events will appear here.</div>')+'</div>'}
+function entryRow(p,nxt){const f=S.entry.kind==='finish';
+return `<div class="card hl" style="margin:8px 0"><label style="margin-top:0">${f?'Air level in bottle (PSI) at finish':'Air level in bottle (PSI) – station complete'}</label><div class="row"><input id="entry" class="psi" type="number" inputmode="numeric" placeholder="PSI" value="${dv('p'+p.id)}" oninput="A.dr('p${p.id}',this.value)"><button class="p" style="flex:1" onclick="A.${f?'finish':'mark'}('${p.id}')">${f?'Save &amp; finish':'Save &amp; start '+nxt}</button><button onclick="A.cancel()">Cancel</button></div></div>`}
+function personCard(p,e,n){
+const m=p.marks||[],k=m.length,run=e.status==='running',done=p.endAt!=null,ps=pstats(p);
+const s0=p.startIdx||0,cur=esc(e.stations[(s0+k-1+n)%n]),nxt=esc(e.stations[(s0+k)%n]),nm=esc(p.name);
+const act=S.entry&&S.entry.pid===p.id,lap=k>n?' · lap '+(Math.floor((k-1)/n)+1):'';
+const inp=`<input id="entry" class="psi" type="number" inputmode="numeric" placeholder="PSI" value="${dv('p'+p.id)}" oninput="A.dr('p${p.id}',this.value)">`;
+let ctl='';
+if(done){ctl=''}
+else if(p.startPsi==null){ctl=`<div class="step"><b>Step 1.</b> Enter the air in ${nm}’s bottle before the start.</div><div class="row"><input class="psi" type="number" inputmode="numeric" placeholder="PSI" value="${dv('sp'+p.id)}" oninput="A.dr('sp${p.id}',this.value)"><button class="p" style="flex:1" onclick="A.startPsi('${p.id}')">Save bottle air</button></div>`}
+else if(!run){ctl=`<div class="step">Bottle saved at ${p.startPsi} PSI. Waiting for the event clock to start.</div>`}
+else if(k===0){ctl=`<div class="step"><b>Step 2.</b> Tap START when ${nm} begins ${nxt}.</div><button class="p big" onclick="A.mark('${p.id}')">▶ START ${nxt}</button>`}
+else{
+ctl=`<div class="now"><div class="nm"><span class="mu">NOW ON</span><br>${cur}${lap}</div><span class="t" data-from="${e.startedAt+m[k-1].at}">0:00</span></div>`;
+if(act&&S.entry.kind==='finish')ctl+=`<div class="step"><b>Enter the air left in the bottle (PSI), then save to finish ${nm}.</b></div><div class="row">${inp}<button class="p" style="flex:1" onclick="A.finish('${p.id}')">Save and finish</button><button onclick="A.cancel()">Cancel</button></div>`;
+else if(act)ctl+=`<div class="step"><b>Enter the air left in the bottle now (PSI).</b> Saving ends ${cur} and starts ${nxt}.</div><div class="row">${inp}<button class="p" style="flex:1" onclick="A.mark('${p.id}')">Save and start ${nxt}</button><button onclick="A.cancel()">Cancel</button></div>`;
+else ctl+=`<button class="p big" onclick="A.ask('${p.id}','next')">NEXT → ${nxt}<small>Tap when ${nm} finishes ${cur}</small></button>
+<div class="row" style="margin-top:8px"><button class="s2" onclick="A.flag('${p.id}','vibAt')">${p.vibAt!=null?'✔ Vibralert '+fmt(p.vibAt):'☐ Vibralert'}</button><button class="s2" onclick="A.flag('${p.id}','maskAt')">${p.maskAt!=null?'✔ Mask breathing '+fmt(p.maskAt):'☐ Mask breathing'}</button></div>
+<div class="row" style="margin-top:6px"><button class="s2" onclick="A.ask('${p.id}','finish')">Air empty – finish</button><button class="s2" onclick="A.undo('${p.id}')">↺ Reset station</button></div>`}
+const rows=m.map((x,i)=>`<tr><td>${esc(e.stations[((p.startIdx||0)+i)%n])+(i>=n?' (lap '+(Math.floor(i/n)+1)+')':'')}</td><td>${fmt(x.at)}</td><td>${x.psi}</td><td>${ps.st[i]?fmt(ps.st[i].dur):'…'}</td><td>${ps.st[i]&&ps.st[i].used!=null?ps.st[i].used:'…'}</td></tr>`).join('');
+if(!done&&k===0)ctl=`<div class="row stbar"><span class="mu">Starts at</span><select class="stsel" onchange="A.setStart('${p.id}',this.value)">${e.stations.map((x,i)=>`<option value="${i}" ${i===s0?'selected':''}>${i+1}. ${esc(x)}</option>`).join('')}</select></div>`+ctl;
+return `<div class="card"><div class="row sp"><b style="font-size:18px">${nm}</b>${p.observer?`<span class="tag">Observer: ${esc(p.observer)}</span>`:`<button class="s" onclick="A.claim('${p.id}')">I’m observing</button>`}</div>
+<div class="mu">Bottle at start: ${p.startPsi!=null?p.startPsi+' PSI':'—'}${done?' · End: '+p.endPsi+' PSI · Total '+fmt(ps.task??0)+(ps.used!=null?' · Used '+ps.used+' PSI':''):''}${p.vibAt!=null?' · Vibralert '+fmt(p.vibAt):''}${p.maskAt!=null?' · Mask '+fmt(p.maskAt):''}</div>${ctl}
+${m.length?`<div class="sc" style="margin-top:8px"><table><tr><th>Station</th><th>Began</th><th>PSI at start</th><th>Time</th><th>Used</th></tr>${rows}</table></div>`:''}</div>`}
+function personCardOld(p,e,n){
+const m=p.marks||[],run=e.status==='running',done=p.endAt!=null,ps=pstats(p);
+let ctl='';
+if(e.status==='setup'||p.startPsi==null){ctl=`<div class="row"><input class="psi" type="number" inputmode="numeric" placeholder="Start PSI" value="${dv('sp'+p.id)}" oninput="A.dr('sp${p.id}',this.value)"><button class="s" onclick="A.startPsi('${p.id}')">Save bottle start</button></div>`}
+if(run&&p.startPsi!=null&&!done){
+ const last=m.length?m[m.length-1].at:0;
+ const nxt=esc(e.stations[((p.startIdx||0)+m.length)%n]);const lbl='Start '+nxt;const act=S.entry&&S.entry.pid===p.id;
+ ctl+=`<div class="row" style="margin-top:6px"><span class="mu">Current: ${m.length?esc(e.stations[((p.startIdx||0)+m.length-1)%n])+(m.length>n?' (lap '+(Math.floor((m.length-1)/n)+1)+')':''):'not started'}</span><span class="t" data-from="${e.startedAt+last}">0:00</span></div>
+ ${act?entryRow(p,nxt):`<div class="row" style="margin-top:6px"><button class="p" style="flex:1;min-height:60px;font-size:17px" onclick="A.${m.length?`ask('${p.id}','next')`:`mark('${p.id}')`}">${m.length?'✔ Station complete':'▶ '+lbl}</button></div>`}
+ <div class="row" style="margin-top:6px"><button style="flex:1" onclick="A.flag('${p.id}','vibAt')">${p.vibAt!=null?'✔ Vibralert '+fmt(p.vibAt):'☐ Vibralert'}</button><button style="flex:1" onclick="A.flag('${p.id}','maskAt')">${p.maskAt!=null?'✔ Mask breathing '+fmt(p.maskAt):'☐ Mask breathing'}</button></div>
+ <div class="row" style="margin-top:6px"><button style="flex:1" onclick="A.ask('${p.id}','finish')">Air empty – finish</button></div>`}
+const rows=m.map((x,i)=>`<tr><td>${esc(e.stations[((p.startIdx||0)+i)%n])+(i>=n?' (lap '+(Math.floor(i/n)+1)+')':'')}</td><td>${fmt(x.at)}</td><td>${x.psi}</td><td>${ps.st[i]?fmt(ps.st[i].dur):'…'}</td><td>${ps.st[i]&&ps.st[i].used!=null?ps.st[i].used:'…'}</td></tr>`).join('');
+return `<div class="card"><div class="row sp"><b style="font-size:18px">${esc(p.name)}</b>${p.observer?`<span class="tag">Observer: ${esc(p.observer)}</span>`:`<button class="s" onclick="A.claim('${p.id}')">I’m observing</button>`}</div>
+<div class="mu">Bottle at start: ${p.startPsi!=null?p.startPsi+' PSI':'—'}${done?' · End: '+p.endPsi+' PSI at '+fmt(p.endAt)+(ps.used!=null?' · Used '+ps.used+' PSI':''):''}${p.vibAt!=null?' · Vibralert '+fmt(p.vibAt):''}${p.maskAt!=null?' · Mask '+fmt(p.maskAt):''}</div>${ctl}
+${m.length?`<div class="sc" style="margin-top:8px"><table><tr><th>Station</th><th>Began</th><th>PSI</th><th>Time</th><th>Used</th></tr>${rows}</table></div>`:''}
+${(m.length||done)&&e.status!=='done'?`<button class="s" style="margin-top:8px" onclick="A.undo('${p.id}')">↺ Reset station</button>`:''}</div>`}
+
+function endPanel(e){const act=S.people.filter(p=>(p.marks||[]).length&&p.endAt==null);
+return `<div class="card hl"><h2>End event – enter air level in each bottle</h2>${act.length?act.map(p=>`<div class="row sp" style="margin-bottom:8px"><b>${esc(p.name)}</b><input class="psi" type="number" inputmode="numeric" placeholder="PSI" value="${dv('e'+p.id)}" oninput="A.dr('e${p.id}',this.value)"></div>`).join(''):'<div class="mu">Everyone has already finished.</div>'}<div class="row"><button class="p" style="flex:1" onclick="A.endConfirm()">End event</button><button onclick="A.endCancel()">Cancel</button></div></div>`}
+function rosterView(e){const rows=S.people.map(p=>{const s=pstats(p);return `<tr><td>${esc(p.name)}</td><td>${esc(p.observer||'–')}</td><td>${p.startPsi??'–'}</td><td>${p.endPsi??'–'}</td><td>${s.used??'–'}</td><td>${s.task!=null?fmt(s.task):'–'}</td><td>${p.vibAt!=null?fmt(p.vibAt):'–'}</td><td>${p.maskAt!=null?fmt(p.maskAt):'–'}</td></tr>`}).join('');
+return `<div class="card"><h2>Roster results</h2><div class="sc"><table><tr><th>Name</th><th>Observer</th><th>Start PSI</th><th>End PSI</th><th>PSI used</th><th>Total time</th><th>Vibralert</th><th>Mask</th></tr>${rows}</table></div></div>`}
+function eventView(){const e=ev();if(!e)return'<div class="mu">Loading…</div>';
+const n=e.stations.length;
+const list=S.people.filter(p=>!S.mine||(S.me&&p.observer===S.me)).sort((a,b)=>(a.endAt!=null)-(b.endAt!=null));
+let clock=e.status==='setup'?'<div class="clock mu">0:00</div>':`<div class="clock" data-from="${e.startedAt}" ${e.endedAt?`data-to="${e.endedAt}"`:S.endAsk&&S.endFreeze?`data-to="${S.endFreeze}"`:''}>0:00</div>`;
+return `<div class="row sp"><button class="s" onclick="A.tab('home')">← Events</button><span class="tag ${e.status==='running'?'run':''}">${e.status}</span></div>
+<h1>${esc(e.name)}</h1>
+<div class="card clockcard">${clock}${e.status==='done'?`<div class="mu" style="text-align:center">Total event time ${fmt(evTime(e))}</div>`:''}
+<div class="row" style="justify-content:center">${e.status==='setup'?'<button class="p" onclick="A.startEvent()">▶ Start event clock</button>':e.status==='running'?'<button class="p" onclick="A.endEvent()">■ End event</button>':'<button class="p" onclick="A.resetClock()">↺ Reset clock for next participant</button>'}</div></div>
+${S.endAsk&&e.status==='running'?endPanel(e):''}
+${S.people.length&&e.status!=='setup'?rosterView(e):''}
+
+${e.status!=='done'?`<div class="card"><div class="row"><input style="flex:1" value="${dv('pName')}" oninput="A.dr('pName',this.value)" placeholder="Add next participant"><button class="p" onclick="A.addPerson()">Add</button></div><div class="row stbar"><span class="mu">Starts at</span><select class="stsel" onchange="A.dr('pStart',this.value)">${e.stations.map((x,i)=>`<option value="${i}" ${String(i)===String(S.drafts.pStart||0)?'selected':''}>${i+1}. ${esc(x)}</option>`).join('')}</select></div></div>`:''}
+${list.map(p=>personCard(p,e,n)).join('')||'<div class="mu">No people to show.</div>'}
+<div class="card"><label style="margin-top:0">Your name (observer)</label><input value="${esc(S.me)}" oninput="A.setMe(this.value)" placeholder="Observer name">
+<label class="row" style="margin-top:10px"><input type="checkbox" style="width:auto" ${S.mine?'checked':''} onchange="A.mine(this.checked)"> Show only people I’m observing</label></div>
+<div class="card">${S.confirmDel?'<div style="margin-bottom:10px">Delete this event and all its results permanently?</div><div class="row"><button class="danger-solid" style="flex:1" onclick="A.delEvent()">Yes, delete</button><button style="flex:1" onclick="A.cancelDel()">Cancel</button></div>':'<button class="danger-ghost" onclick="A.askDel()">Delete event</button>'}</div>`}
+
+function compareView(){
+const done=S.events.filter(e=>e.status==='done');
+const opt=id=>'<option value="">Select event…</option>'+done.map(e=>`<option value="${e.id}" ${e.id===id?'selected':''}>${esc(e.name)} (${new Date(e.createdAt).toLocaleDateString()})</option>`).join('');
+let out='';const a=S.cmp.a,b=S.cmp.b;
+if(a&&b){
+ const sm=x=>{const ps=x.people.map(pstats);return{n:x.people.length,time:evTime(x.ev),task:avg(ps.map(p=>p.task)),used:avg(ps.map(p=>p.used)),st:x.ev.stations.map((_,i)=>{const L=x.ev.stations.length,all=ps.flatMap(p=>p.st.filter((s,k)=>s&&((p.startIdx||0)+k)%L===i));return{dur:avg(all.map(s=>s.dur)),used:avg(all.map(s=>s.used))}})}};
+ const X=sm(a),Y=sm(b);
+ const T=v=>v==null?'–':fmt(v),P=v=>v==null?'–':Math.round(v);
+ const dT=(p,q)=>p==null||q==null?'–':sfmt(q-p),dP=(p,q)=>p==null||q==null?'–':(q-p>=0?'+':'−')+Math.abs(Math.round(q-p));
+ const rowS=(l,p,q,f,d)=>`<tr><td>${l}</td><td>${f(p)}</td><td>${f(q)}</td><td>${d(p,q)}</td></tr>`;
+ const nm=Math.min(a.ev.stations.length,b.ev.stations.length);
+ let st='';for(let i=0;i<nm;i++)st+=rowS(esc(a.ev.stations[i])+' – time',X.st[i].dur,Y.st[i].dur,T,dT)+rowS(esc(a.ev.stations[i])+' – PSI used',X.st[i].used,Y.st[i].used,P,dP);
+ const names=[...new Set([...a.people,...b.people].map(p=>p.name.trim().toLowerCase()))];
+ const f=(x,nme)=>x.people.find(p=>p.name.trim().toLowerCase()===nme);
+ const pr=names.map(nme=>{const pa=f(a,nme),pb=f(b,nme);const sa=pa&&pstats(pa),sb=pb&&pstats(pb);const disp=(pa||pb).name;
+  return `<tr><td>${esc(disp)}</td><td>${sa?P(sa.used):'–'}</td><td>${sb?P(sb.used):'–'}</td><td>${sa&&sb?dP(sa.used,sb.used):'–'}</td><td>${sa?T(sa.task):'–'}</td><td>${sb?T(sb.task):'–'}</td><td>${sa&&sb?dT(sa.task,sb.task):'–'}</td></tr>`}).join('');
+ out=`<div class="card"><h2>Event summary</h2><div class="sc"><table><tr><th></th><th>A</th><th>B</th><th>B vs A</th></tr>
+ ${rowS('Total event time',X.time,Y.time,T,dT)}${rowS('People',X.n,Y.n,v=>v,(p,q)=>q-p)}${rowS('Avg task time',X.task,Y.task,T,dT)}${rowS('Avg PSI used',X.used,Y.used,P,dP)}</table></div></div>
+ <div class="card"><h2>By station (average)</h2><div class="sc"><table><tr><th></th><th>A</th><th>B</th><th>B vs A</th></tr>${st}</table></div></div>
+ <div class="card"><h2>By person</h2><div class="sc"><table><tr><th>Name</th><th>PSI A</th><th>PSI B</th><th>Δ</th><th>Time A</th><th>Time B</th><th>Δ</th></tr>${pr}</table></div></div>`}
+return `<h1>Compare events</h1>${done.length<2?'<div class="mu">Finish at least two events to compare them.</div>':''}
+<div class="card"><label style="margin-top:0">Event A (baseline)</label><select onchange="A.pick('a',this.value)">${opt(S.cmp.aid)}</select><label>Event B</label><select onchange="A.pick('b',this.value)">${opt(S.cmp.bid)}</select></div>${out}`}
+
+function render(){
+const act=document.activeElement;
+if(act&&(act.tagName==='INPUT'||act.tagName==='TEXTAREA')&&$('#app').contains(act)&&act.type!=='checkbox'){pending=true;return}
+pending=false;
+const tabs=`<div class="tabs"><button class="${S.view!=='compare'?'on':''}" onclick="A.tab('home')">Home</button><button class="${S.view==='compare'?'on':''}" onclick="A.tab('compare')">Compare</button></div>`;
+$('#app').innerHTML='<div class="hdr"><span class="mk">AC</span><div><b>Air Consumption Tracker</b><small>Event timing &amp; bottle air log</small></div></div><div class="pg">'+(S.view==='compare'?compareView():S.view==='event'?eventView():homeView())+'</div>'+(S.view==='event'?'':tabs);
+tick();if(S.focusEntry){const f=$('#entry');if(f){f.focus();S.focusEntry=false}}}
+document.addEventListener('focusout',()=>{if(pending)setTimeout(render,80)});
+function tick(){document.querySelectorAll('[data-from]').forEach(el=>{const f=+el.dataset.from,t=el.dataset.to?+el.dataset.to:Date.now();el.textContent=fmt(t-f)})}
+setInterval(tick,250);
+
+
+/* Local storage adapter: same minimal API the app uses from Claude's shared db
+   (collection/doc/add/get/set/delete/orderBy/onSnapshot). Data lives in this browser only. */
+function localDb(){
+  const KEY='toac:v1';let mem=null;const subs={};
+  const load=()=>{if(mem)return mem;try{mem=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){mem={}}return mem};
+  const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){}};
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  const split=p=>{const i=p.lastIndexOf('/');return[p.slice(0,i),p.slice(i+1)]};
+  const rows=c=>Object.entries(load()[c]||{}).map(([id,d])=>({id,data:()=>JSON.parse(JSON.stringify(d))}));
+  const snap=(c,f,dir)=>{let r=rows(c);if(f)r.sort((a,b)=>{const x=a.data()[f],y=b.data()[f];return(x>y?1:x<y?-1:0)*(dir==='desc'?-1:1)});return{docs:r}};
+  const notify=c=>(subs[c]||[]).forEach(fn=>fn());
+  const put=(c,id,d)=>{const m=load();(m[c]=m[c]||{})[id]=JSON.parse(JSON.stringify(d));persist();notify(c)};
+  const query=(c,f,dir)=>({
+    orderBy:(f2,d2)=>query(c,f2,d2),
+    get:async()=>snap(c,f,dir),
+    onSnapshot(cb){const fn=()=>cb(snap(c,f,dir));(subs[c]=subs[c]||new Set()).add(fn);setTimeout(fn,0);return()=>subs[c].delete(fn)}
+  });
+  window.addEventListener('storage',e=>{if(e.key===KEY){mem=null;Object.keys(subs).forEach(notify)}});
+  return{
+    collection:c=>Object.assign(query(c),{add:async d=>{const id=uid();put(c,id,d);return{id}}}),
+    doc:p=>{const[c,id]=split(p);return{set:async d=>put(c,id,d),delete:async()=>{const m=load();if(m[c]){delete m[c][id];persist();notify(c)}}}}
+  };
+}
+(async()=>{
+try{db=(window.claude&&claude.use)?await claude.use('db'):localDb()}catch(e){db=localDb()}
+if(!db){$('#app').innerHTML='<div class="card">Shared storage isn’t available. Open this page while signed in to Claude.</div>';return}
+db.collection('events').orderBy('createdAt','desc').onSnapshot(s=>{S.events=s.docs.map(d=>({id:d.id,...d.data()}));loadRost();render()},e=>toast('Could not load events'));
+db.collection('presets').orderBy('createdAt').onSnapshot(s=>{S.presets=s.docs.map(d=>({id:d.id,...d.data()}));render()},e=>{});
+render();
+})();
+</script>
+</body>
+</html>
