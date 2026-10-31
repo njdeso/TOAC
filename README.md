@@ -8,7 +8,7 @@ pressure as they move between stations, then compare events, stations and partic
 - Per-participant starting station, with rotation that wraps around
 - Live station timers, event clock, and lap tracking
 - Reusable station presets and event comparison
-- Light and dark themes
+- Dark theme on every device
 
 ## Run it
 
