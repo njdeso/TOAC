@@ -1,5 +1,7 @@
 # TOAC
 
+TOAC is a software application developed by Vudu Tech. It's currently under development.
+
 Air Consumption Tracker for timed events. Observers log each participant's cylinder
 pressure as they move between stations, then compare events, stations and participants.
 
@@ -10,8 +12,8 @@ pressure as they move between stations, then compare events, stations and partic
 
 ## Run it
 
-It's a single static file. Open `index.html` in a browser, or host it with GitHub Pages
-(Settings → Pages → Deploy from branch → `main` / root).
+It's a single static file. Open `index.html` in a browser, or deploy it with Netlify
+(connect this repo, no build command, publish directory = root).
 
 ## Data storage
 
@@ -19,3 +21,9 @@ This version saves events in the browser's `localStorage`, so data stays on the 
 entered it and isn't shared between observers. The storage layer is the small `localDb()`
 adapter near the bottom of `index.html` (collection/doc/add/get/set/delete/orderBy/onSnapshot).
 To sync across devices, replace it with a backend that offers the same calls, such as Firebase Firestore.
+
+## Technology
+
+- Developed using Claude
+- Source code managed through GitHub
+- Deployment through Netlify
